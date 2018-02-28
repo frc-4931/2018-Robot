@@ -22,24 +22,29 @@ public class Lift extends Subsystem {
 /**
  * Creates a new lift. This sets up the motors and potentiometers necessary for lifting.
  */
-  public Lift() {
-    liftMotor = new WPI_TalonSRX(RobotMap.liftMotorPort);
-    liftMotor.setInverted(RobotMap.liftMotorInverted);
-    liftMotor.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 0);
-    liftMotor.setSelectedSensorPosition(0, 0, 0);
-    liftMotor.setNeutralMode(NeutralMode.Brake);
-    liftMotor.setSensorPhase(RobotMap.liftMotorSensorInverted);
-    liftHeight = FixedLiftHeight.FLOOR;
+public Lift() {
+  liftMotor = new WPI_TalonSRX(RobotMap.liftMotorPort);
+  liftMotor.setInverted(RobotMap.liftMotorInverted);
+  liftMotor.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 0);
+  liftMotor.setSelectedSensorPosition(0, 0, 0);
+  liftMotor.setSensorPhase(RobotMap.liftMotorSensorInverted);
+  liftMotor.configClosedloopRamp(0.5, 0);
+  liftMotor.setNeutralMode(NeutralMode.Brake);
+  liftHeight = FixedLiftHeight.FLOOR;
 
-    topLimitSwitch = new DigitalInput(RobotMap.grabberTopLimitPort);
-    bottomLimitSwitch = new DigitalInput(RobotMap.grabberBottomLimitPort);
+  topLimitSwitch = new DigitalInput(RobotMap.grabberTopLimitPort);
+  bottomLimitSwitch = new DigitalInput(RobotMap.grabberBottomLimitPort);
+}
+
+  public double getPosition() {
+    return liftMotor.getSelectedSensorPosition(0);
   }
 
   /**
    * @return if the lift has reached it's desired set point yet.
    */
   public boolean isAtTarget() {
-    return (liftMotor.getSelectedSensorPosition(0) >= setPoint);
+    return (getPosition() >= setPoint);
   }
 
   @Override
@@ -63,11 +68,11 @@ public class Lift extends Subsystem {
   public void setLiftHeight(double position) {
     setPoint = position;
     if (!topLimitSwitch.get() && !bottomLimitSwitch.get()) {
-      liftMotor.set(ControlMode.MotionMagic, setPoint);
-    } else if (topLimitSwitch.get() && setPoint < liftMotor.getSelectedSensorPosition(0)) {
-      liftMotor.set(ControlMode.MotionMagic, setPoint);
-    } else if (bottomLimitSwitch.get() && setPoint > liftMotor.getSelectedSensorPosition(0)) {
-      liftMotor.set(ControlMode.MotionMagic, setPoint);
+      liftMotor.set(ControlMode.Position, setPoint);
+    } else if (topLimitSwitch.get() && setPoint < getPosition()) {
+      liftMotor.set(ControlMode.Position, setPoint);
+    } else if (bottomLimitSwitch.get() && setPoint > getPosition()) {
+      liftMotor.set(ControlMode.Position, setPoint);
     }
   }
 
@@ -95,7 +100,7 @@ public class Lift extends Subsystem {
 
   public void log() {
     SmartDashboard.putString("Lift Height", liftHeight.name());
-    SmartDashboard.putNumber("Lift Position", liftMotor.getSelectedSensorPosition(0));
+    SmartDashboard.putNumber("Lift Position", getPosition());
     SmartDashboard.putNumber("Lift Motor Speed", liftMotor.get());
   }
   
