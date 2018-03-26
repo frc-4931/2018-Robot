@@ -2,18 +2,19 @@ package org.usfirst.frc.team4931.robot.commands;
 
 import edu.wpi.first.wpilibj.command.Command;
 import org.usfirst.frc.team4931.robot.Robot;
-/**
- * Opens the grabber
- */
-public class OpenGrabber extends Command {
 
-  public OpenGrabber() {
-    setInterruptible(true);
+public class GrabberMoveSpeed extends Command {
+
+  private double speed;
+
+  public GrabberMoveSpeed(double speed) {
+    requires(Robot.grabber);
+    this.speed = speed;
   }
 
   @Override
   protected void initialize() {
-    Robot.grabber.releaseCube();
+    Robot.grabber.setSpeed(speed);
   }
 
   @Override

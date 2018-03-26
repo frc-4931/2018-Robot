@@ -8,29 +8,31 @@ import org.usfirst.frc.team4931.robot.Robot;
  */
 public class TurnToAngle extends Command {
 
-  private static final double RAMP_UP_THRESHOLD_DISTANCE = 270;
-  private static final double RAMP_DOWN_THRESHOLD_DISTANCE = 270;
-  private static final double START_SPEED = 0.2;
-  private static final double END_SPEED = 0.1;
+  private static final double RAMP_UP_THRESHOLD_DISTANCE = 20;
+  private static final double RAMP_DOWN_THRESHOLD_DISTANCE = 45;
+  private static final double START_SPEED = 0.4;
+  private static final double END_SPEED = 0.3;
+  private static final double MAX_SPEED = 0.6;
   private double speed;
   private double angle;
+  private double startAngle;
 
   public TurnToAngle(double speed, double angle) {
     requires(Robot.drivetrain);
 
-    this.speed = speed;
+    this.speed = Math.min(speed, MAX_SPEED);
     this.angle = angle;
     System.out.println("Starting Speed: " + speed);
   }
 
   @Override
   protected void initialize() {
-    Robot.drivetrain.gyroReset();
+    startAngle = Robot.drivetrain.gyroReadYawAngle();
   }
 
   @Override
   protected void execute() {
-    double currentAngle = Robot.drivetrain.gyroReadYawAngle();
+    double currentAngle = Robot.drivetrain.gyroReadYawAngle() - startAngle;
     double calcSpeed = ramp(Math.abs(currentAngle));
 
     if (speed > 0) {
@@ -44,7 +46,7 @@ public class TurnToAngle extends Command {
 
   @Override
   protected boolean isFinished() {
-    return Math.abs(Robot.drivetrain.gyroReadYawAngle()) >= Math.abs(angle);
+    return Math.abs(Robot.drivetrain.gyroReadYawAngle() - startAngle) >= Math.abs(angle);
   }
 
   @Override
@@ -66,7 +68,8 @@ public class TurnToAngle extends Command {
       double rampDownThreshold, double maxSpeed, double startSpeed, double endSpeed) {
     return Math.min(Math.min(Math.pow(current / rampUpThreshold, 0.75), 1) * (maxSpeed - startSpeed)
             + startSpeed,
-        Math.min(Math.pow((target - current) / rampDownThreshold, 1.5), 1) * (maxSpeed - endSpeed)
+        Math.min(Math.pow(Math.max((target - current) / rampDownThreshold, 0), 1.5), 1) * (maxSpeed
+            - endSpeed)
             + endSpeed);
   }
 
